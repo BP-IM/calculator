@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Смена уақыт калькуляторы</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f5f7fb, #e8eefc);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #1f2937;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 460px;
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtext {
+      text-align: center;
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 14px;
+      font-size: 16px;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 15px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 8px;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .result {
+      margin-top: 22px;
+      background: #f3f6ff;
+      border-radius: 16px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .result-title {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+
+    .result-value {
+      font-size: 34px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #6b7280;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .error {
+      margin-top: 14px;
+      text-align: center;
+      color: #dc2626;
+      font-size: 14px;
+      min-height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Сағат калькуляторы</h1>
+    <p class="subtext">
+      Смена уақыты мен перерывты енгізіңіз. Нәтиже ондық форматта шығады.
+    </p>
+
+    <div class="field">
+      <label for="startTime">Начало смены</label>
+      <input type="time" id="startTime" value="12:56" />
+    </div>
+
+    <div class="field">
+      <label for="endTime">Окончание смены</label>
+      <input type="time" id="endTime" value="21:12" />
+    </div>
+
+    <div class="field">
+      <label for="breakHours">Время перерыва (сағат)</label>
+      <input type="number" id="breakHours" value="1" min="0" step="0.1" placeholder="Мысалы: 1" />
+    </div>
+
+    <button onclick="calculateHours()">Есептеу</button>
+
+    <div class="error" id="error"></div>
+
+    <div class="result">
+      <div class="result-title">Жұмыс уақыты</div>
+      <div class="result-value" id="result">7,27</div>
+    </div>
+
+    <div class="hint">
+      Мысал: 12:56 → 21:12, перерыв 1 сағат болса нәтиже шамамен <b>7,27</b> сағат болады.
+    </div>
+  </div>
+
+  <script>
+    function timeToMinutes(time) {
+      const [hours, minutes] = time.split(":").map(Number);
+      return hours * 60 + minutes;
+    }
+
+    function formatDecimalHours(hours) {
+      return hours.toFixed(2).replace('.', ',');
+    }
+
+    function calculateHours() {
+      const startTime = document.getElementById("startTime").value;
+      const endTime = document.getElementById("endTime").value;
+      const breakHours = parseFloat(document.getElementById("breakHours").value) || 0;
+      const result = document.getElementById("result");
+      const error = document.getElementById("error");
+
+      error.textContent = "";
+
+      if (!startTime || !endTime) {
+        error.textContent = "Уақыттарды толық енгізіңіз.";
+        result.textContent = "0,00";
+        return;
+      }
+
+      let startMinutes = timeToMinutes(startTime);
+      let endMinutes = timeToMinutes(endTime);
+
+      // Егер смена түнге өтіп кетсе
+      if (endMinutes < startMinutes) {
+        endMinutes += 24 * 60;
+      }
+
+      const breakMinutes = breakHours * 60;
+      const workedMinutes = endMinutes - startMinutes - breakMinutes;
+
+      if (workedMinutes < 0) {
+        error.textContent = "Перерыв уақыты жұмыс уақытынан көп болып тұр.";
+        result.textContent = "0,00";
+        return;
+      }
+
+      const workedHoursDecimal = workedMinutes / 60;
+      result.textContent = formatDecimalHours(workedHoursDecimal);
+    }
+
+    calculateHours();
+  </script>
+</body>
+</html>
